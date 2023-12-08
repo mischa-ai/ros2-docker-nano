@@ -1,54 +1,43 @@
 FROM dustynv/ros:iron-ros-base-l4t-r32.7.1
 
-ARG USERNAME=ros
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG ROS_PACKAGE=ros_base
+ARG ROS_VERSION=iron
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && mkdir /home/$USERNAME/.config \
-    && chown -R $USER_UID:$USER_GID /home/$USERNAME \
-    && echo "source /opt/ros/iron/setup.bash" >> $HOME/.bashrc
+ENV ROS_DISTRO=${ROS_VERSION}
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_PYTHON_VERSION=3
 
-# Set environment variables for user configuration
-ENV HOME /home/$USERNAME
-ENV USER $USERNAME
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"] 
 
-WORKDIR $HOME/ros2_ws
+WORKDIR /tmp
 
-# Install dependencies
+# change the locale from POSIX to UTF-8
 RUN apt-get update && \
-    apt-get install -y \
-        vim \
-        python3-pip \
-        python3-rosdep \
-        python3-colcon-common-extensions \
-        python3-vcstool \
-        python3-rosinstall-generator \
+    apt-get install -y --no-install-recommends locales \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-RUN source /opt/ros/iron/setup.bash \
-    && rosdep init \
-    && rosdep update
+RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
 
-RUN mkdir -p $HOME/ros2_ws/src \
-    && cd $HOME/ros2_ws/src \
-    && rosinstall_generator \
-        ros2_control \
-        ros2-controllers \
-        --rosdistro iron --deps --tar > ros2_control.rosinstall \
-    && wstool init src $HOME/ros2_ws/src/ros2_control.rosinstall \
-    && source /opt/ros/iron/setup.bash \
-    && rosdep install --from-paths src --ignore-src -r -y \
-    && colcon build
+# set Python3 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+    
+# build ROS from source
+COPY ros2_build.sh ros2_build.sh
+RUN ./ros2_build.sh
 
-# Source ros2_control workspace
-RUN echo "source /opt/ros/iron/setup.bash" >> $HOME/.bashrc
-RUN echo "source $HOME/ros2_ws/install/local_setup.bash" >> $HOME/.bashrc
+# Set the default DDS middleware to cyclonedds
+# https://github.com/ros2/rclcpp/issues/1335
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-COPY entrypoint.sh /entrypoint.sh
+# commands will be appended/run by the entrypoint which sources the ROS environment
+COPY ros_entrypoint.sh /ros_entrypoint.sh
 
-ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
 
-CMD ["bash"]
+WORKDIR /

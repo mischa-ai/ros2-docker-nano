@@ -1,0 +1,75 @@
+FROM dustynv/ros:iron-ros-base-l4t-r32.7.1
+
+# Docker image preparation
+
+ARG USERNAME=ros
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && mkdir /home/$USERNAME/.config \
+    && chown -R $USER_UID:$USER_GID /home/$USERNAME \
+    && echo "source /opt/ros/iron/setup.bash" >> $HOME/.bashrc
+
+ENV HOME /home/$USERNAME
+ENV USER $USERNAME
+
+RUN apt-get update && \
+    apt-get install -y \
+        python3-pip \
+        python3-pygraphviz \
+        python3-rospkg
+
+RUN gcc --version
+
+RUN apt-get update && \
+    apt-get install -y \
+        software-properties-common \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gcc-8 g++-8
+
+ENV CC=/usr/bin/gcc-8
+ENV CXX=/usr/bin/g++-8
+
+# Ros2 package installation
+
+RUN mkdir -p $HOME/ros2_ws/src
+WORKDIR $HOME/ros2_ws
+
+RUN git clone https://github.com/ros-controls/ros2_control.git $HOME/ros2_ws/src/ros2_control
+RUN git clone https://github.com/ros-controls/ros2_controllers.git $HOME/ros2_ws/src/ros2_controllers
+
+ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos $HOME/ros2_ws/src/ros2_control.repos
+RUN vcs import < $HOME/ros2_ws/src/ros2_control.repos
+
+
+# Source ROS and update dependencies
+RUN . /opt/ros/iron/install/setup.sh && rosdep update && rosdep install  -r -y --from-paths $HOME/ros2_ws/src
+
+# Build only the specific package
+RUN . /opt/ros/iron/install/setup.sh && colcon build --packages-select \
+    ros2_control \
+    ros2-controllers \
+    control_msgs \
+    controller_manager_msgs \
+    joint_limits \
+    realtime_tools \
+    ros2_control_test_assets \
+    hardware_interface \
+    controller_interface \
+    transmission_interface \
+    controller_manager \
+    ros2controlcli
+
+
+# Source ros2_control workspace
+RUN echo "source /opt/ros/iron/install/setup.bash" >> $HOME/.bashrc
+RUN echo "source $HOME/ros2_ws/install/local_setup.bash" >> $HOME/.bashrc
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+
+CMD ["bash"]

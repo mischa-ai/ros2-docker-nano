@@ -2,7 +2,7 @@
 
 set -e
 
-source /opt/ros/iron/setup.bash
+source /opt/ros/iron/install/setup.bash
 
 echo "ARGS: $@"
 
