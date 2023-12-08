@@ -28,7 +28,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
     
 # build ROS from source
 COPY ros2_build.sh ros2_build.sh
-RUN ./ros2_build.sh
+RUN bash ./ros2_build.sh
 
 # Set the default DDS middleware to cyclonedds
 # https://github.com/ros2/rclcpp/issues/1335

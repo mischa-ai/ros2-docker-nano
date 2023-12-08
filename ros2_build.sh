@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
 # this script builds a ROS2 distribution from source
 # ROS_DISTRO, ROS_ROOT, ROS_PACKAGE environment variables should be set
 
