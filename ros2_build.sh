@@ -133,7 +133,15 @@ if [ "$ROS_DISTRO" = "humble" ] || [ "$ROS_DISTRO" = "iron" ] && [ $(lsb_release
 fi
     
 echo "--skip-keys $SKIP_KEYS"
-    
+
+
+# ERROR: default sources list file already exists
+file_to_check="/etc/ros/rosdep/sources.list.d/20-default.list"
+if [ -e "$file_to_check" ]; then
+    echo "Deleting $file_to_check"
+    rm "$file_to_check"
+fi
+
 # install dependencies using rosdep
 rosdep init
 rosdep update
