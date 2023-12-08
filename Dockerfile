@@ -35,9 +35,9 @@ RUN ./ros2_build.sh
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # commands will be appended/run by the entrypoint which sources the ROS environment
-COPY ros_entrypoint.sh /ros_entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["/ros_entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
 
 WORKDIR /
