@@ -27,8 +27,12 @@ ENV PYTHONIOENCODING=utf-8
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
     
 # build ROS from source
-COPY ros2_build.sh ros2_build.sh
-RUN bash ./ros2_build.sh
+#COPY ros2_build.sh ros2_build.sh
+#RUN bash ./ros2_build.sh
+
+# test c++ version
+COPY ros2_build_test.sh ros2_build_test.sh
+RUN bash ./ros2_build_test.sh
 
 # Set the default DDS middleware to cyclonedds
 # https://github.com/ros2/rclcpp/issues/1335
