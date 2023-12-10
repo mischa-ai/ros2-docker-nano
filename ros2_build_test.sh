@@ -7,3 +7,6 @@ echo "ROS2 builder => ROS_DISTRO=$ROS_DISTRO ROS_PACKAGE=$ROS_PACKAGE ROS_ROOT=$
 
 echo "Compiler version: $(gcc --version)"
 echo "CMake version: $(cmake --version)"
+
+echo "CC=$CC CXX=$CXX"
+

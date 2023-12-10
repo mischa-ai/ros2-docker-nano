@@ -34,6 +34,11 @@ RUN apt-get update && \
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 100
 
 RUN echo "Compiler version: $(g++ --version)"
+
+ENV CC="/usr/bin/gcc-8"
+ENV CXX="/usr/bin/g++-8"
+
+
     
 # build ROS from source
 #COPY ros2_build.sh ros2_build.sh
