@@ -36,40 +36,40 @@ RUN update-alternatives --set gcc /usr/bin/gcc-9 && \
 
 RUN echo "Compiler version: $(g++ --version)"
 
-# Ros2 package installation
+# ROS2 package installation
 
 RUN mkdir -p $HOME/ros2_ws/src
 WORKDIR $HOME/ros2_ws
 
-RUN git clone https://github.com/ros-controls/ros2_control.git ./src/ros2_control
-RUN git clone https://github.com/ros-controls/ros2_controllers.git ./src/ros2_controllers
+#RUN git clone https://github.com/ros-controls/ros2_control.git ./src/ros2_control
+#RUN git clone https://github.com/ros-controls/ros2_controllers.git ./src/ros2_controllers
 
-ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos ./src/ros2_control.repos
-RUN vcs import < ./src/ros2_control.repos
+ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos ros2_control.iron.repos
+RUN vcs import src < ros2_control.iron.repos
 
-# Source ROS and update dependencies
-RUN source /opt/ros/iron/install/setup.sh \
-    && rosdep update \
-    && rosdep install  -r -y --from-paths ./src
+# Source ROS2 and update dependencies
+RUN rosdep update --rosdistro=iron \
+    && apt-get update \
+    && rosdep install --from-paths src --ignore-src -r -y
 
 # Build only the specific package
-RUN source /opt/ros/iron/install/setup.sh \
-    && colcon build \
-        --cmake-args \
-            -DCMAKE_CXX_STANDARD=17 \
-        --packages-select \
-            ros2_control \
-            ros2-controllers \
-            control_msgs \
-            controller_manager_msgs \
-            joint_limits \
-            realtime_tools \
-            ros2_control_test_assets \
-            hardware_interface \
-            controller_interface \
-            transmission_interface \
-            controller_manager \
-            ros2controlcli
+# RUN source /opt/ros/iron/install/setup.sh \
+#     && colcon build \
+#         --cmake-args \
+#             -DCMAKE_CXX_STANDARD=17 \
+#         --packages-select \
+#             ros2_control \
+#             ros2-controllers \
+#             control_msgs \
+#             controller_manager_msgs \
+#             joint_limits \
+#             realtime_tools \
+#             ros2_control_test_assets \
+#             hardware_interface \
+#             controller_interface \
+#             transmission_interface \
+#             controller_manager \
+#             ros2controlcli
 
 
 # Source ros2_control workspace
