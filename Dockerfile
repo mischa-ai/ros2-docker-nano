@@ -13,30 +13,44 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /tmp
 
-# change the locale from POSIX to UTF-8
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends locales \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# change the locale from POSIX to UTF-8 - already done in base image
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends locales \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && apt-get clean
 
-RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-ENV LANG=en_US.UTF-8
-ENV PYTHONIOENCODING=utf-8
+# RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+# ENV LANG=en_US.UTF-8
+# ENV PYTHONIOENCODING=utf-8
 
 # set Python3 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends g++-8 && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends g++-8 && \
+#     rm -rf /var/lib/apt/lists/* && \
+#     apt-get clean
 
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 100
+# RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 100
+
+# install gcc 9
+
+RUN apt-get update && apt-get install -y software-properties-common
+
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
+
+RUN apt-get update && apt-get install -y gcc-9 g++-9
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
+
+RUN update-alternatives --set gcc /usr/bin/gcc-9 && \
+    update-alternatives --set g++ /usr/bin/g++-9
 
 RUN echo "Compiler version: $(g++ --version)"
 
-ENV CC="/usr/bin/gcc-8"
-ENV CXX="/usr/bin/g++-8"
+ENV CC="/usr/bin/gcc-9"
+ENV CXX="/usr/bin/g++-9"
 
 
     
@@ -45,12 +59,12 @@ ENV CXX="/usr/bin/g++-8"
 #RUN bash ./ros2_build.sh
 
 # test c++ version
-COPY ros2_build_test.sh ros2_build_test3.sh
-RUN bash ./ros2_build_test3.sh
+COPY ros2_build_test.sh ros2_build_test4.sh
+RUN bash ./ros2_build_test4.sh
 
 # Set the default DDS middleware to cyclonedds
 # https://github.com/ros2/rclcpp/issues/1335
-ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+#ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # commands will be appended/run by the entrypoint which sources the ROS environment
 COPY entrypoint.sh /entrypoint.sh

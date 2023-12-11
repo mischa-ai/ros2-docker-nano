@@ -47,8 +47,6 @@ RUN git clone https://github.com/ros-controls/ros2_controllers.git ./src/ros2_co
 ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos ./src/ros2_control.repos
 RUN vcs import < ./src/ros2_control.repos
 
-RUN ls -hal /opt/ros/iron/install/
-
 # Source ROS and update dependencies
 RUN source /opt/ros/iron/install/setup.sh \
     && rosdep update \
