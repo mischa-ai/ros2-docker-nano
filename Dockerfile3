@@ -15,65 +15,54 @@ RUN groupadd --gid $USER_GID $USERNAME \
 ENV HOME /home/$USERNAME
 ENV USER $USERNAME
 
-RUN apt-get update && \
-    apt-get install -y \
-        python3-pip \
+RUN apt-get update \
+    && apt-get install -y \
         python3-pygraphviz \
-        python3-rospkg
+        python3-rospkg \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-RUN gcc --version
-
-RUN apt-get update && \
-    apt-get install -y \
-        software-properties-common \
-    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends gcc-8 g++-8
-
-ENV CC=/usr/bin/gcc-8
-ENV CXX=/usr/bin/g++-8
-
-RUN echo "Compiler version: $(gcc --version)" \
-    && echo "CMake version: $(cmake --version)" \
-    && echo "CC=$CC CXX=$CXX"
 
 # Ros2 package installation
 
-# RUN mkdir -p $HOME/ros2_ws/src
-# WORKDIR $HOME/ros2_ws
+RUN mkdir -p $HOME/ros2_ws/src
+WORKDIR $HOME/ros2_ws
 
-# RUN git clone https://github.com/ros-controls/ros2_control.git $HOME/ros2_ws/src/ros2_control
-# RUN git clone https://github.com/ros-controls/ros2_controllers.git $HOME/ros2_ws/src/ros2_controllers
+RUN git clone https://github.com/ros-controls/ros2_control.git ./src/ros2_control
+RUN git clone https://github.com/ros-controls/ros2_controllers.git ./src/ros2_controllers
 
-# ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos $HOME/ros2_ws/src/ros2_control.repos
-# RUN vcs import < $HOME/ros2_ws/src/ros2_control.repos
-
-
-# # Source ROS and update dependencies
-# RUN . /opt/ros/iron/install/setup.sh \
-#     && rosdep update \
-#     && rosdep install  -r -y --from-paths $HOME/ros2_ws/src
-
-# # Build only the specific package
-# RUN . /opt/ros/iron/install/setup.sh \
-#     && colcon build --packages-select \
-#         ros2_control \
-#         ros2-controllers \
-#         control_msgs \
-#         controller_manager_msgs \
-#         joint_limits \
-#         realtime_tools \
-#         ros2_control_test_assets \
-#         hardware_interface \
-#         controller_interface \
-#         transmission_interface \
-#         controller_manager \
-#         ros2controlcli
+ADD https://raw.githubusercontent.com/ros-controls/ros2_control/master/ros2_control.iron.repos ./src/ros2_control.repos
+RUN vcs import < ./src/ros2_control.repos
 
 
-# # Source ros2_control workspace
-# RUN echo "source /opt/ros/iron/install/setup.bash" >> $HOME/.bashrc
-# RUN echo "source $HOME/ros2_ws/install/local_setup.bash" >> $HOME/.bashrc
+# Source ROS and update dependencies
+RUN . /opt/ros/iron/install/setup.sh \
+    && rosdep update \
+    && rosdep install  -r -y --from-paths ./src
+
+# Build only the specific package
+RUN . /opt/ros/iron/install/setup.sh \
+    && colcon build \
+        --cmake-args \
+            -DCMAKE_CXX_STANDARD=17 \
+        --packages-select \
+            ros2_control \
+            ros2-controllers \
+            control_msgs \
+            controller_manager_msgs \
+            joint_limits \
+            realtime_tools \
+            ros2_control_test_assets \
+            hardware_interface \
+            controller_interface \
+            transmission_interface \
+            controller_manager \
+            ros2controlcli
+
+
+# Source ros2_control workspace
+#RUN echo "source /opt/ros/iron/install/setup.bash" >> $HOME/.bashrc
+#RUN echo "source ./install/local_setup.bash" >> $HOME/.bashrc
 
 COPY entrypoint.sh /entrypoint.sh
 
