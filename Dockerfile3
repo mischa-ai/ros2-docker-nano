@@ -19,9 +19,17 @@ RUN apt-get update \
     && apt-get install -y \
         python3-pygraphviz \
         python3-rospkg \
+        gcc-9 g++-9 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
+
+RUN update-alternatives --set gcc /usr/bin/gcc-9 && \
+    update-alternatives --set g++ /usr/bin/g++-9
+
+RUN echo "Compiler version: $(g++ --version)"
 
 # Ros2 package installation
 
