@@ -49,12 +49,12 @@ RUN vcs import < ./src/ros2_control.repos
 
 
 # Source ROS and update dependencies
-RUN . /opt/ros/iron/install/setup.sh \
+RUN bash /opt/ros/iron/install/setup.bash \
     && rosdep update \
     && rosdep install  -r -y --from-paths ./src
 
 # Build only the specific package
-RUN . /opt/ros/iron/install/setup.sh \
+RUN bash /opt/ros/iron/install/setup.bash \
     && colcon build \
         --cmake-args \
             -DCMAKE_CXX_STANDARD=17 \
