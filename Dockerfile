@@ -10,5 +10,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# launch ros package
-CMD ["ros2", "launch", "demo-nodes-py", "talker_listener.launch.py"]
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+
+CMD ["bash"]
