@@ -11,4 +11,4 @@ RUN apt-get update \
     && apt-get clean
 
 # launch ros package
-CMD ["ros2", "launch", "demo_nodes_cpp", "talker_listener.launch.py"]
+CMD ["ros2", "launch", "demo-nodes-py", "talker_listener.launch.py"]
